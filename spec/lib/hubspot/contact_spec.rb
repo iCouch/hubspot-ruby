@@ -51,6 +51,38 @@ describe Hubspot::Contact do
     end
   end
 
+  describe '.create_or_update!' do
+    cassette 'create_or_update'
+    let(:existing_contact) do
+      Hubspot::Contact.create!("morpheus@example.com", firstname: 'Morpheus')
+    end
+    before do
+      Hubspot::Contact.create_or_update!(params)
+    end
+
+    let(:params) do
+      [
+        {
+          vid: existing_contact.vid,
+          email: existing_contact.email,
+          firstname: 'Neo'
+        },
+        {
+          email: 'smith@example.com',
+          firstname: 'Smith'
+        }
+      ]
+    end
+
+    it 'creates and updates contacts' do
+      contact = Hubspot::Contact.find_by_id existing_contact.vid
+      expect(contact.properties['firstname']).to eql 'Neo'
+      latest_contact_email = Hubspot::Contact.all(recent: true).first.email
+      new_contact = Hubspot::Contact.find_by_email(latest_contact_email)
+      expect(new_contact.properties['firstname']).to eql 'Smith'
+    end
+  end
+
   describe ".find_by_email" do
     context 'given an uniq email' do
       cassette "contact_find_by_email"
@@ -63,13 +95,13 @@ describe Hubspot::Contact do
       end
 
       context "when the contact cannot be found" do
-        it 'raises an error' do 
+        it 'raises an error' do
           expect { Hubspot::Contact.find_by_email('notacontact@test.com') }.to raise_error(Hubspot::RequestError)
         end
       end
     end
 
-    context 'batch mode' do 
+    context 'batch mode' do
       cassette "contact_find_by_email_batch_mode"
 
       it 'find lists of contacts' do
@@ -81,7 +113,7 @@ describe Hubspot::Contact do
   end
 
   describe ".find_by_id" do
-    context 'given an uniq id' do 
+    context 'given an uniq id' do
       cassette "contact_find_by_id"
       subject{ Hubspot::Contact.find_by_id(vid) }
 
@@ -93,12 +125,12 @@ describe Hubspot::Contact do
 
       context "when the contact cannot be found" do
         it 'raises an error' do
-          expect { Hubspot::Contact.find_by_id(9999999) }.to raise_error(Hubspot::RequestError) 
+          expect { Hubspot::Contact.find_by_id(9999999) }.to raise_error(Hubspot::RequestError)
         end
       end
     end
 
-    context 'batch mode' do 
+    context 'batch mode' do
       cassette "contact_find_by_id_batch_mode"
 
       # NOTE: error currently appends on API endpoint
@@ -109,7 +141,7 @@ describe Hubspot::Contact do
   end
 
   describe ".find_by_utk" do
-    context 'given an uniq utk' do 
+    context 'given an uniq utk' do
       cassette "contact_find_by_utk"
       subject{ Hubspot::Contact.find_by_utk(utk) }
 
@@ -120,13 +152,13 @@ describe Hubspot::Contact do
       end
 
       context "when the contact cannot be found" do
-        it 'raises an error' do 
-          expect { Hubspot::Contact.find_by_utk("invalid") }.to raise_error(Hubspot::RequestError) 
+        it 'raises an error' do
+          expect { Hubspot::Contact.find_by_utk("invalid") }.to raise_error(Hubspot::RequestError)
         end
       end
     end
 
-    context 'batch mode' do 
+    context 'batch mode' do
       cassette "contact_find_by_utk_batch_mode"
 
       it 'find lists of contacts' do
@@ -138,7 +170,7 @@ describe Hubspot::Contact do
 
 
   describe '.all' do
-    context 'all contacts' do 
+    context 'all contacts' do
       cassette 'find_all_contacts'
 
       it 'must get the contacts list' do
@@ -177,7 +209,7 @@ describe Hubspot::Contact do
       end
     end
 
-    context 'recent contacts' do 
+    context 'recent contacts' do
       cassette 'find_all_recent_contacts'
 
       it 'must get the contacts list' do

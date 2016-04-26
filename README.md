@@ -37,6 +37,12 @@ Here's what you can do for now:
 Hubspot::Contact.create!("email@address.com", {firstname: "First", lastname: "Last"})
 ```
 
+### Create or update in batches
+
+```ruby
+Hubspot::Contact.create_or_update!([{email: 'smith@example.com', firstname: 'First', lastname: 'Last'}])
+```
+
 ### Find a contact
 
 These methods will return a `Hubspot::Contact` object if successful, `nil` otherwise:
